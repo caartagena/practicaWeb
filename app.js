@@ -265,9 +265,9 @@ function showPage(pageName) {
         document.getElementById('header').classList.remove('hidden');
         document.getElementById(`${pageName}Page`).classList.remove('hidden');
         if (pageName === 'timeline') renderTimeline();
-        else if (pageName === 'profile') renderProfile();
-        else if (pageName === 'search') renderSearchResults();
-        else if (pageName === 'messages') renderConversations();
+        else if (currentPage === 'profile') renderProfile();
+        else if (currentPage === 'search') renderSearchResults();
+        else if (currentPage === 'messages') renderConversations();
     }
 }
 
@@ -345,13 +345,18 @@ function renderTimeline() {
         const isLiked = likedByArray.includes(currentUser.id);
         const comments = recipe.comments ? JSON.parse(recipe.comments) : [];
 
+        // Mostrar imagen real si es data URL, si no mostrar emoji/placeholder
+        const imageHtml = (recipe.recipeImage && String(recipe.recipeImage).startsWith('data:'))
+            ? `<div class="recipe-image"><img src="${recipe.recipeImage}" alt="${(recipe.recipeTitle || 'receta')}" /></div>`
+            : `<div class="recipe-image">${recipe.recipeImage || '🍕'}</div>`;
+
         return `
       <div class="recipe-card">
         <div class="recipe-header">
           <div class="recipe-author-photo">${author?.profilePhoto || '👤'}</div>
           <div class="recipe-author-name">${author?.username || 'Usuario'}</div>
         </div>
-        <div class="recipe-image">${recipe.recipeImage || '🍕'}</div>
+        ${imageHtml}
         <div class="recipe-actions">
           <button class="action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${recipe.id}')">${isLiked ? '❤️' : '🤍'}</button>
           <button class="action-btn" onclick="focusComment('${recipe.id}')">💬</button>
@@ -441,22 +446,42 @@ document.getElementById('newRecipeForm').addEventListener('submit', async (e) =>
     const description = document.getElementById('recipeDescription').value.trim();
     const ingredients = document.getElementById('recipeIngredients').value.trim();
     const steps = document.getElementById('recipeSteps').value.trim();
-    const emoji = document.getElementById('recipeEmoji').value.trim() || '🍕';
+
+    // Nuevo: obtener fichero
+    const fileInput = document.getElementById('recipeImageFile');
+    const file = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
 
     const submitBtn = document.getElementById('submitRecipeBtn');
     submitBtn.disabled = true; submitBtn.textContent = 'Publicando...';
+
+    // Leer fichero (si existe) como data URL
+    let imageDataUrl = null;
+    try {
+        imageDataUrl = await readFileAsDataURL(file);
+    } catch (err) {
+        console.error('Error leyendo imagen:', err);
+        showToast('Error al leer la imagen. Intenta de nuevo.');
+        submitBtn.disabled = false; submitBtn.textContent = 'Publicar Receta';
+        return;
+    }
+
+    // Si no hay imagen, usar emoji por defecto
+    const imageOrEmoji = imageDataUrl || '🍕';
 
     const result = await window.dataSdk.create({
         id: generateId(), type: 'recipe',
         recipeTitle: title, recipeDescription: description,
         recipeIngredients: ingredients, recipeSteps: steps,
-        recipeImage: emoji, authorId: currentUser.id, authorName: currentUser.username,
+        recipeImage: imageOrEmoji, authorId: currentUser.id, authorName: currentUser.username,
         likes: 0, likedBy: '', comments: '[]', timestamp: new Date().toISOString()
     });
 
     submitBtn.disabled = false; submitBtn.textContent = 'Publicar Receta';
-    if (result.isOk) { showToast('¡Receta publicada!'); document.getElementById('newRecipeModal').classList.remove('active'); document.getElementById('newRecipeForm').reset(); }
-    else showToast('Error al publicar la receta');
+    if (result.isOk) {
+        showToast('¡Receta publicada!');
+        document.getElementById('newRecipeModal').classList.remove('active');
+        document.getElementById('newRecipeForm').reset();
+    } else showToast('Error al publicar la receta');
 });
 
 // Profile
@@ -487,13 +512,17 @@ function renderProfile() {
         const isLiked = likedByArray.includes(currentUser.id);
         const comments = recipe.comments ? JSON.parse(recipe.comments) : [];
 
+        const imageHtml = (recipe.recipeImage && String(recipe.recipeImage).startsWith('data:'))
+            ? `<div class="recipe-image"><img src="${recipe.recipeImage}" alt="${(recipe.recipeTitle || 'receta')}" /></div>`
+            : `<div class="recipe-image">${recipe.recipeImage || '🍕'}</div>`;
+
         return `
       <div class="recipe-card">
         <div class="recipe-header">
           <div class="recipe-author-photo">${user.profilePhoto || '👤'}</div>
           <div class="recipe-author-name">${user.username}</div>
         </div>
-        <div class="recipe-image">${recipe.recipeImage || '🍕'}</div>
+        ${imageHtml}
         <div class="recipe-actions">
           <button class="action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${recipe.id}')">${isLiked ? '❤️' : '🤍'}</button>
           <button class="action-btn" onclick="focusComment('${recipe.id}')">💬</button>
@@ -732,3 +761,14 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 // Init
 // Punto de entrada: inicia la app una vez cargado el script.
 initApp();
+
+// Util: lee File como data URL
+function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+        if (!file) return resolve(null);
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('file_read_error'));
+        reader.readAsDataURL(file);
+    });
+}

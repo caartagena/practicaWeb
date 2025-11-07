@@ -231,8 +231,10 @@
                     <textarea id="recipeSteps" class="form-input" rows="4" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="recipeEmoji">Emoji de la receta</label>
-                    <input type="text" id="recipeEmoji" class="form-input" placeholder="🍕" maxlength="2" />
+                    <label for="recipeImageFile">Foto de la receta</label>
+                    <input type="file" id="recipeImageFile" class="form-input" accept="image/*" />
+                    <small style="display:block;margin-top:6px;color:#8e8e8e;">Puedes subir una foto desde tu
+                        dispositivo. Si no subes nada, se usará un emoji por defecto.</small>
                 </div>
                 <button type="submit" class="btn-primary" id="submitRecipeBtn">Publicar Receta</button>
             </form>
