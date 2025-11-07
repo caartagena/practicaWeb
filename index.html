@@ -2,31 +2,62 @@
 <html lang="es">
 
 <head>
+    <!--
+      =============================================
+      RecetaGram - Red Social de Recetas (DEMO)
+      Archivo: index.html (todo en 1 fichero)
+
+      ▶ Qué encontrarás aquí
+      - 2 SDKs "mock" (simulados) embebidos que usan localStorage:
+        • dataSdk: CRUD de usuarios, recetas, amistades y mensajes.
+        • elementSdk: Configuración visual/dinámica (tema, textos, etc.).
+      - Estilos (CSS) con un diseño tipo app social.
+      - HTML de 5 páginas internas: auth, timeline, perfil, búsqueda y mensajes.
+      - Lógica de UI (JS) para navegar, publicar recetas, likes/comentarios,
+        amistades y chat 1:1. Todo client‑side, sin backend real.
+
+      NOTA: Este archivo es educativo: los comentarios explican la intención,
+      el flujo de datos y puntos a mejorar si se quisiera llevar a producción.
+      =============================================
+    -->
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RecetaGram - Red Social de Recetas</title>
 
     <!-- (SDKs MOCK embebidos – NO necesitas archivos externos) -->
     <script>
-        // ===== _sdk/data_sdk.js (mock localStorage) =====
+        // =============================================================
+        //  _sdk/data_sdk.js (MOCK) — Capa de datos sobre localStorage
+        //  - Persiste todo en la clave "recetagram_data".
+        //  - Ofrece operaciones: init, create, update, delete, reset.
+        //  - Llama a onDataChanged de los suscriptores cuando algo cambia.
+        // =============================================================
         (function () {
-            const STORAGE_KEY = "recetagram_data";
-            let data = [];
-            let subscribers = [];
+            const STORAGE_KEY = "recetagram_data";  // clave única en localStorage
+            let data = [];                           // array plano con ENTIDADES
+            let subscribers = [];                    // manejadores notificados en cambios
 
+            // Carga inicial de datos desde localStorage
             function load() {
                 try { data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
                 catch { data = []; }
             }
+            // Guarda el estado actual en localStorage (persistencia)
             function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+            // Notifica a todos los observadores (patrón Observer muy sencillo)
             function notify() { subscribers.forEach(h => h?.onDataChanged && h.onDataChanged([...data])); }
 
+            // Semilla de datos de ejemplo si está vacío (cuentas demo + 1 receta)
             function seedIfEmpty() {
-                if (data.length > 0) return;
+                if (data.length > 0) return; // ya hay datos
                 const now = new Date().toISOString();
+                // 2 usuarios de ejemplo
                 const u1 = { id: "u_demo", type: "user", username: "demo", password: "demo", fullName: "Cuenta Demo", bio: "Amante de la cocina 👨‍🍳", profilePhoto: "👤", timestamp: now };
                 const u2 = { id: "u_ana", type: "user", username: "ana", password: "ana", fullName: "Ana Chef", bio: "Pasta lover 🍝", profilePhoto: "👩‍🍳", timestamp: now };
+                // amistad aceptada (simula ya ser amigos)
                 const f1 = { id: "f1", type: "friendship", requesterId: "u_demo", receiverId: "u_ana", status: "accepted", timestamp: now };
+                // 1 receta inicial publicada por @ana
                 const r1 = {
                     id: "r1", type: "recipe",
                     recipeTitle: "Tostada de aguacate",
@@ -46,17 +77,21 @@
             load();
             seedIfEmpty();
 
+            // Exponemos una API mínima al global window como dataSdk
             window.dataSdk = {
+                // init: registra un handler para recibir onDataChanged y emite estado
                 async init(handler) {
                     if (handler && !subscribers.includes(handler)) subscribers.push(handler);
                     notify();
                     return { isOk: true };
                 },
+                // create: inserta un objeto tal cual (no hay validación de esquema)
                 async create(obj) {
                     data.push(obj);
                     save(); notify();
                     return { isOk: true, data: obj };
                 },
+                // update: reemplaza por id; si no existe, devuelve error
                 async update(obj) {
                     const i = data.findIndex(x => x.id === obj.id);
                     if (i === -1) return { isOk: false, error: "not_found" };
@@ -64,12 +99,14 @@
                     save(); notify();
                     return { isOk: true };
                 },
+                // delete: elimina por id (devuelve true si cambió algo)
                 async delete(id) {
                     const before = data.length;
                     data = data.filter(x => x.id !== id);
                     save(); notify();
                     return { isOk: data.length !== before };
                 },
+                // reset: borra TODO (útil para reiniciar la demo)
                 async reset() {
                     data = []; save(); notify();
                     return { isOk: true };
@@ -79,11 +116,16 @@
     </script>
 
     <script>
-        // ===== _sdk/element_sdk.js (mock config en localStorage) =====
+        // ==================================================================
+        //  _sdk/element_sdk.js (MOCK) — Capa de "configuración" (tema/textos)
+        //  - Guarda/lee un objeto de configuración en localStorage.
+        //  - Permite init(defaults, onChange) y setConfig(partial).
+        //  - Cuando hay cambios, llama a onConfigChange con el objeto actual.
+        // ==================================================================
         (function () {
-            const CFG_KEY = "recetagram_config";
-            let config = {};
-            let onConfigChangeCb = null;
+            const CFG_KEY = "recetagram_config"; // clave en localStorage
+            let config = {};                      // configuración activa
+            let onConfigChangeCb = null;          // callback para notificar cambios
 
             function loadCfg() {
                 try { config = JSON.parse(localStorage.getItem(CFG_KEY) || "{}"); }
@@ -94,15 +136,18 @@
 
             loadCfg();
 
+            // API pública en window.elementSdk
             window.elementSdk = {
-                config,
+                config, // referencia (se sobrescribe en init)
                 async init({ defaultConfig = {}, onConfigChange } = {}) {
+                    // Mezcla defaults con lo que ya hubiera guardado el usuario
                     config = { ...defaultConfig, ...config };
                     saveCfg();
                     onConfigChangeCb = onConfigChange || null;
                     applyChange();
                     return { isOk: true };
                 },
+                // setConfig: actualiza parcialmente y dispara el callback
                 setConfig(partial) {
                     config = { ...config, ...partial };
                     saveCfg();
@@ -113,14 +158,22 @@
     </script>
 
     <style>
+        /* =============================================================
+           ESTILOS BASE / LAYOUT
+           - Tipografía del sistema
+           - Contenedor centrado
+           - Variables no se usan; se aplica tema dinámicamente por JS
+           ============================================================= */
         body {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: #fafafa;
+            /* se puede sobreescribir por config */
             height: 100%;
             overflow-x: hidden;
+            /* evita scroll horizontal accidental */
         }
 
         * {
@@ -129,17 +182,19 @@
 
         .container {
             max-width: 935px;
+            /* ancho tipo Instagram web */
             margin: 0 auto;
             padding: 20px;
             min-height: 100%;
         }
 
-        /* Header */
+        /* ==================== HEADER/NAV ==================== */
         .header {
             background: white;
             border-bottom: 1px solid #dbdbdb;
             padding: 12px 0;
             position: sticky;
+            /* se mantiene arriba al hacer scroll */
             top: 0;
             z-index: 100;
             margin-bottom: 30px;
@@ -180,7 +235,7 @@
             background: #f0f0f0;
         }
 
-        /* Auth */
+        /* ==================== AUTH ==================== */
         .auth-container {
             max-width: 350px;
             margin: 60px auto;
@@ -272,7 +327,7 @@
             margin-left: 5px;
         }
 
-        /* Profile */
+        /* ==================== PERFIL ==================== */
         .profile-header {
             display: flex;
             gap: 80px;
@@ -346,7 +401,7 @@
             background: #fafafa;
         }
 
-        /* Timeline */
+        /* ==================== TIMELINE (feed) ==================== */
         .timeline-header {
             text-align: center;
             margin-bottom: 30px;
@@ -442,6 +497,7 @@
             color: #ed4956;
         }
 
+        /* corazón rojo si te gusta */
         .recipe-likes {
             padding: 0 16px 8px;
             font-weight: 600;
@@ -488,7 +544,7 @@
             font-size: 14px;
         }
 
-        /* Comments */
+        /* ==================== COMENTARIOS ==================== */
         .recipe-comments {
             padding: 0 16px 16px;
             border-top: 1px solid #efefef;
@@ -541,7 +597,7 @@
             background: #0081d6;
         }
 
-        /* Search */
+        /* ==================== BÚSQUEDA / AMIGOS ==================== */
         .search-container {
             background: white;
             border-radius: 12px;
@@ -648,7 +704,7 @@
             border: 1px solid #dbdbdb;
         }
 
-        /* Messages */
+        /* ==================== MENSAJES (conversaciones + chat) ==================== */
         .messages-container {
             display: flex;
             gap: 24px;
@@ -827,7 +883,7 @@
             cursor: not-allowed;
         }
 
-        /* Modal & misc */
+        /* ==================== MODAL / ESTADOS / MISC ==================== */
         .modal {
             display: none;
             position: fixed;
@@ -937,22 +993,26 @@
     </style>
 
     <style>
+        /* View Transitions API: permite transiciones suaves entre "páginas" */
         @view-transition {
             navigation: auto;
         }
     </style>
+
+    <!-- Tailwind sólo para utilidades cosméticas si quieres ampliar -->
     <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
 </head>
 
 <body>
-    <!-- Toast Notification -->
+    <!-- ===== Toast Notification (mensajes flotantes) ===== -->
     <div id="toast" class="toast"></div>
 
-    <!-- Header (hidden on auth page) -->
+    <!-- ===== Header global (se oculta en pantalla de auth) ===== -->
     <div id="header" class="header hidden">
         <div class="header-content">
             <div class="logo" id="logoBtn">RecetaGram</div>
             <div class="nav-buttons">
+                <!-- Navegación por iconos: Inicio, Buscar, Mensajes, Perfil, Logout -->
                 <button class="nav-btn" id="homeBtn" title="Inicio">🏠</button>
                 <button class="nav-btn" id="searchBtn" title="Buscar">🔍</button>
                 <button class="nav-btn" id="messagesBtn" title="Mensajes">💬</button>
@@ -963,13 +1023,13 @@
     </div>
 
     <div class="container">
-        <!-- Auth Page -->
+        <!-- ==================== PÁGINA: AUTH ==================== -->
         <div id="authPage">
             <div class="auth-container">
                 <div class="auth-logo" id="authLogo">RecetaGram</div>
                 <div class="auth-tagline" id="authTagline">Comparte tus recetas favoritas</div>
 
-                <!-- Login Form -->
+                <!-- Formulario de inicio de sesión -->
                 <form id="loginForm">
                     <div class="form-group">
                         <label for="loginUsername">Nombre de usuario</label>
@@ -982,7 +1042,7 @@
                     <button type="submit" class="btn-primary" id="loginBtn">Iniciar Sesión</button>
                 </form>
 
-                <!-- Register Form -->
+                <!-- Formulario de registro -->
                 <form id="registerForm" class="hidden">
                     <div class="form-group">
                         <label for="registerFullName">Nombre completo</label>
@@ -999,6 +1059,7 @@
                     <button type="submit" class="btn-primary" id="registerBtn">Registrarse</button>
                 </form>
 
+                <!-- Switch entre login/registro -->
                 <div class="auth-switch">
                     <span id="authSwitchText">¿No tienes cuenta?</span>
                     <button type="button" id="authSwitchBtn">Regístrate</button>
@@ -1006,7 +1067,7 @@
             </div>
         </div>
 
-        <!-- Timeline Page -->
+        <!-- ==================== PÁGINA: TIMELINE ==================== -->
         <div id="timelinePage" class="hidden">
             <div class="timeline-header">
                 <h1 class="timeline-title" id="timelineTitle">Recetas de tus Amigos</h1>
@@ -1015,7 +1076,7 @@
             <div id="recipesList"></div>
         </div>
 
-        <!-- Profile Page -->
+        <!-- ==================== PÁGINA: PERFIL ==================== -->
         <div id="profilePage" class="hidden">
             <div class="profile-header">
                 <div class="profile-photo-container">
@@ -1034,7 +1095,7 @@
             <div id="userRecipesList"></div>
         </div>
 
-        <!-- Search Page -->
+        <!-- ==================== PÁGINA: BÚSQUEDA ==================== -->
         <div id="searchPage" class="hidden">
             <div class="search-container">
                 <div class="search-header">
@@ -1045,13 +1106,15 @@
             </div>
         </div>
 
-        <!-- Messages Page -->
+        <!-- ==================== PÁGINA: MENSAJES ==================== -->
         <div id="messagesPage" class="hidden">
             <div class="messages-container">
+                <!-- Lista de conversaciones (amigos) -->
                 <div class="conversations-list">
                     <div class="conversations-header">Mensajes</div>
                     <div id="conversationsList"></div>
                 </div>
+                <!-- Chat actual -->
                 <div class="chat-container">
                     <div id="chatHeader" class="chat-header hidden">
                         <div class="chat-user-photo" id="chatUserPhoto">👤</div>
@@ -1067,7 +1130,7 @@
         </div>
     </div>
 
-    <!-- New Recipe Modal -->
+    <!-- ==================== MODAL: Nueva Receta ==================== -->
     <div id="newRecipeModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1100,7 +1163,7 @@
         </div>
     </div>
 
-    <!-- Edit Profile Modal -->
+    <!-- ==================== MODAL: Editar Perfil ==================== -->
     <div id="editProfileModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1125,15 +1188,17 @@
         </div>
     </div>
 
-    <!-- App script -->
+    <!-- ==================== APP SCRIPT (Lógica de la UI) ==================== -->
     <script>
-        // Global state
-        let allData = [];
-        let currentUser = null;
-        let currentPage = 'auth';
-        let selectedChatUser = null;
+        // ----------------------------
+        // Estado global simple
+        // ----------------------------
+        let allData = [];          // cache local de TODO lo que hay en dataSdk
+        let currentUser = null;    // usuario logeado actual
+        let currentPage = 'auth';  // auth | timeline | profile | search | messages
+        let selectedChatUser = null; // destinatario activo del chat
 
-        // Default config
+        // Config por defecto (usada por elementSdk si no hay config guardada)
         const defaultConfig = {
             app_title: 'RecetaGram',
             app_tagline: 'Comparte tus recetas favoritas',
@@ -1151,10 +1216,11 @@
             font_size: 14
         };
 
-        // Data handler
+        // Handler que se suscribe a cambios de dataSdk (Observer)
         const dataHandler = {
             onDataChanged(data) {
-                allData = data;
+                allData = data; // refresca cache local completa
+                // Re-render según la "página" visible
                 if (currentPage === 'timeline') renderTimeline();
                 else if (currentPage === 'profile') renderProfile();
                 else if (currentPage === 'search') renderSearchResults();
@@ -1165,34 +1231,41 @@
             }
         };
 
-        // Initialize SDK
+        // Inicialización de SDKs mock y aplicación
         async function initApp() {
             const initResult = await window.dataSdk.init(dataHandler);
             if (!initResult.isOk) { showToast('Error al inicializar la aplicación'); return; }
 
             await window.elementSdk.init({
                 defaultConfig,
+                // Cuando cambia la config (tema/textos), aplicamos estilos dinámicos
                 onConfigChange: async (config) => {
                     const customFont = config.font_family || defaultConfig.font_family;
                     const baseFontStack = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
                     const baseSize = config.font_size || defaultConfig.font_size;
 
+                    // Tipografía y color de fondo global
                     document.body.style.fontFamily = `${customFont}, ${baseFontStack}`;
                     document.body.style.fontSize = `${baseSize}px`;
                     document.body.style.background = config.background_color || defaultConfig.background_color;
 
+                    // "Superficies": tarjetas/modales/header usando color de superficie
                     const surfaces = document.querySelectorAll('.auth-container, .header, .recipe-card, .search-container, .conversations-list, .chat-container, .modal-content, .profile-header');
                     surfaces.forEach(el => { el.style.background = config.surface_color || defaultConfig.surface_color; });
 
+                    // Textos principales
                     const textElements = document.querySelectorAll('.logo, .auth-logo, .profile-username, .timeline-title, .search-title, .modal-title, .recipe-title, .user-name, .conversation-name, .chat-user-name, .stat, .profile-bio, .recipe-description, .comment, label');
                     textElements.forEach(el => { el.style.color = config.text_color || defaultConfig.text_color; });
 
+                    // Botones primarios
                     const primaryButtons = document.querySelectorAll('.btn-primary, .btn-new-recipe, .btn-add-friend, .btn-send, .btn-comment');
                     primaryButtons.forEach(el => { el.style.background = config.primary_action_color || defaultConfig.primary_action_color; });
 
+                    // Controles secundarios (bordes)
                     const secondaryElements = document.querySelectorAll('.btn-edit-profile, .form-input, .search-input, .chat-input');
                     secondaryElements.forEach(el => { el.style.borderColor = config.secondary_action_color || defaultConfig.secondary_action_color; });
 
+                    // Textos dinámicos (permite "renombrar" la app desde config)
                     document.getElementById('authLogo').textContent = config.app_title || defaultConfig.app_title;
                     document.getElementById('logoBtn').textContent = config.app_title || defaultConfig.app_title;
                     document.getElementById('authTagline').textContent = config.app_tagline || defaultConfig.app_tagline;
@@ -1201,6 +1274,7 @@
                     document.getElementById('timelineTitle').textContent = config.timeline_title || defaultConfig.timeline_title;
                     document.getElementById('searchInput').placeholder = config.search_placeholder || defaultConfig.search_placeholder;
 
+                    // Jerarquía tipográfica (escalas desde font_size base)
                     const headings = document.querySelectorAll('.timeline-title, .search-title, .modal-title');
                     headings.forEach(el => { el.style.fontSize = `${baseSize * 1.7}px`; });
                     const largeText = document.querySelectorAll('.auth-logo, .logo');
@@ -1209,20 +1283,24 @@
             });
         }
 
-        // Utils
+        // ----------------------------
+        // Utilidades comunes
+        // ----------------------------
         function showToast(message) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.classList.add('show');
             setTimeout(() => { toast.classList.remove('show'); }, 3000);
         }
-        function generateId() {
+        function generateId() { // id pseudo-único rápido (para demo)
             return Date.now().toString(36) + Math.random().toString(36).substr(2);
         }
+        // Filtros de entidades por tipo
         function getUsers() { return allData.filter(item => item.type === 'user'); }
         function getRecipes() { return allData.filter(item => item.type === 'recipe').sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); }
         function getFriendships() { return allData.filter(item => item.type === 'friendship'); }
         function getMessages() { return allData.filter(item => item.type === 'message').sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)); }
+        // Amigos del usuario (amistad aceptada en cualquier dirección)
         function getUserFriends(userId) {
             const friendships = getFriendships().filter(f => f.status === 'accepted' && (f.requesterId === userId || f.receiverId === userId));
             const friendIds = friendships.map(f => f.requesterId === userId ? f.receiverId : f.requesterId);
@@ -1236,21 +1314,26 @@
             return f ? f.status : null;
         }
 
-        // Navigation
+        // ----------------------------
+        // Navegación entre "páginas" (render condicional)
+        // ----------------------------
         function showPage(pageName) {
             currentPage = pageName;
+            // Oculta todas
             document.getElementById('authPage').classList.add('hidden');
             document.getElementById('timelinePage').classList.add('hidden');
             document.getElementById('profilePage').classList.add('hidden');
             document.getElementById('searchPage').classList.add('hidden');
             document.getElementById('messagesPage').classList.add('hidden');
 
+            // Header visible sólo en páginas internas
             if (pageName === 'auth') {
                 document.getElementById('header').classList.add('hidden');
                 document.getElementById('authPage').classList.remove('hidden');
             } else {
                 document.getElementById('header').classList.remove('hidden');
                 document.getElementById(`${pageName}Page`).classList.remove('hidden');
+                // Render específico de cada página
                 if (pageName === 'timeline') renderTimeline();
                 else if (pageName === 'profile') renderProfile();
                 else if (pageName === 'search') renderSearchResults();
@@ -1258,11 +1341,14 @@
             }
         }
 
-        // Auth
+        // ----------------------------
+        // Autenticación (DEMO: sin hashing/seguridad)
+        // ----------------------------
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value;
+            // Búsqueda directa en local (no usar así en producción)
             const user = getUsers().find(u => u.username === username && u.password === password);
             if (user) { currentUser = user; showToast('¡Bienvenido de nuevo!'); showPage('timeline'); }
             else showToast('Usuario o contraseña incorrectos');
@@ -1279,6 +1365,7 @@
             const submitBtn = document.getElementById('registerBtn');
             submitBtn.disabled = true; submitBtn.textContent = 'Registrando...';
 
+            // Crea el usuario (password en claro — sólo demo)
             const result = await window.dataSdk.create({
                 id: generateId(), type: 'user', username, password, fullName,
                 bio: 'Amante de la cocina 👨‍🍳', profilePhoto: '👤', timestamp: new Date().toISOString()
@@ -1291,6 +1378,7 @@
             else showToast('Error al crear la cuenta');
         });
 
+        // Cambia entre formulario de login y de registro
         document.getElementById('authSwitchBtn').addEventListener('click', () => {
             const loginForm = document.getElementById('loginForm');
             const registerForm = document.getElementById('registerForm');
@@ -1306,7 +1394,9 @@
             }
         });
 
-        // Timeline
+        // ----------------------------
+        // Timeline (feed de recetas de amigos + tú)
+        // ----------------------------
         function renderTimeline() {
             const recipesList = document.getElementById('recipesList');
             const friends = getUserFriends(currentUser.id);
@@ -1314,6 +1404,7 @@
             const recipes = getRecipes().filter(r => friendIds.includes(r.authorId));
 
             if (recipes.length === 0) {
+                // Estado vacío si no hay recetas en tu red
                 recipesList.innerHTML = `
           <div class="empty-state">
             <div class="empty-state-icon">🍳</div>
@@ -1323,6 +1414,7 @@
                 return;
             }
 
+            // Render de cada tarjeta de receta
             recipesList.innerHTML = recipes.map(recipe => {
                 const author = getUsers().find(u => u.id === recipe.authorId);
                 const likedByArray = recipe.likedBy ? recipe.likedBy.split(',').filter(id => id) : [];
@@ -1371,6 +1463,7 @@
             }).join('');
         }
 
+        // Alterna like/unlike actualizando likedBy (CSV) y contador likes
         async function toggleLike(recipeId) {
             const recipe = allData.find(r => r.id === recipeId);
             if (!recipe) return;
@@ -1390,6 +1483,7 @@
             if (!result.isOk) showToast('Error al actualizar el me gusta');
         }
 
+        // Inserta un nuevo comentario (append en JSON serializado)
         async function addComment(event, recipeId) {
             event.preventDefault();
             const input = document.getElementById(`comment-${recipeId}`);
@@ -1404,12 +1498,15 @@
             recipe.comments = JSON.stringify(comments);
 
             const result = await window.dataSdk.update(recipe);
-            if (result.isOk) input.value = '';
+            if (result.isOk) { input.value = ''; }
             else showToast('Error al añadir el comentario');
         }
+        // Enfoca el input de comentarios del post
         function focusComment(recipeId) { document.getElementById(`comment-${recipeId}`).focus(); }
 
-        // New recipe modal
+        // ----------------------------
+        // Modal de nueva receta (abrir/cerrar + submit)
+        // ----------------------------
         document.getElementById('newRecipeBtn').addEventListener('click', () => {
             document.getElementById('newRecipeModal').classList.add('active');
         });
@@ -1440,7 +1537,9 @@
             else showToast('Error al publicar la receta');
         });
 
-        // Profile
+        // ----------------------------
+        // Perfil (stats y tus propias recetas)
+        // ----------------------------
         function renderProfile() {
             const user = currentUser;
             const recipes = getRecipes().filter(r => r.authorId === user.id);
@@ -1509,15 +1608,18 @@
             }).join('');
         }
 
+        // Abrir modal de edición con los datos actuales del perfil
         document.getElementById('editProfileBtn').addEventListener('click', () => {
             document.getElementById('editFullName').value = currentUser.fullName;
             document.getElementById('editBio').value = currentUser.bio || '';
             document.getElementById('editProfileEmoji').value = currentUser.profilePhoto || '👤';
             document.getElementById('editProfileModal').classList.add('active');
         });
+        // Cerrar modal
         document.getElementById('closeEditProfileModal').addEventListener('click', () => {
             document.getElementById('editProfileModal').classList.remove('active');
         });
+        // Guardar cambios del perfil (update del user)
         document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const fullName = document.getElementById('editFullName').value.trim();
@@ -1538,12 +1640,15 @@
             else showToast('Error al actualizar el perfil');
         });
 
-        // Search
+        // ----------------------------
+        // Búsqueda de usuarios y envío de amistad (aceptada al instante en demo)
+        // ----------------------------
         function renderSearchResults() {
             const searchInput = document.getElementById('searchInput');
             const searchTerm = searchInput.value.toLowerCase().trim();
             const usersList = document.getElementById('usersList');
 
+            // Filtra por nombre/username y excluye al propio usuario
             const users = getUsers().filter(u =>
                 u.id !== currentUser.id &&
                 (u.username.toLowerCase().includes(searchTerm) || u.fullName.toLowerCase().includes(searchTerm))
@@ -1582,6 +1687,7 @@
         }
         document.getElementById('searchInput').addEventListener('input', renderSearchResults);
 
+        // En la demo, enviamos y aceptamos la amistad al instante (status: "accepted")
         async function sendFriendRequest(receiverId) {
             const existingRequest = getFriendships().find(f =>
                 (f.requesterId === currentUser.id && f.receiverId === receiverId) ||
@@ -1598,7 +1704,9 @@
             else showToast('Error al enviar la solicitud');
         }
 
-        // Messages
+        // ----------------------------
+        // Mensajes (lista de conversaciones + chat 1:1)
+        // ----------------------------
         function renderConversations() {
             const friends = getUserFriends(currentUser.id);
             const conversationsList = document.getElementById('conversationsList');
@@ -1631,6 +1739,7 @@
             }).join('');
         }
 
+        // Selecciona un amigo y muestra su chat
         function selectChat(userId) {
             const user = getUsers().find(u => u.id === userId);
             if (!user) return;
@@ -1641,10 +1750,11 @@
 
             const items = document.querySelectorAll('.conversation-item');
             items.forEach(item => item.classList.remove('active'));
-            // Nota: si haces click rápido fuera del elemento, event puede ser undefined.
+            // Nota: si haces click muy fuera del elemento, event podría ser undefined.
             // Aquí asumimos click en el item (como en el template).
         }
 
+        // Renderiza los mensajes intercambiados con el usuario seleccionado
         function renderChat(user) {
             document.getElementById('chatUserPhoto').textContent = user.profilePhoto || '👤';
             document.getElementById('chatUserName').textContent = user.fullName;
@@ -1669,9 +1779,10 @@
                 const isSent = msg.fromUserId === currentUser.id;
                 return `<div class="message ${isSent ? 'sent' : 'received'}">${msg.messageText}</div>`;
             }).join('');
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            chatMessages.scrollTop = chatMessages.scrollHeight; // scroll al final
         }
 
+        // Envía un nuevo mensaje al usuario seleccionado
         document.getElementById('sendMessageBtn').addEventListener('click', async () => {
             const input = document.getElementById('chatInput');
             const messageText = input.value.trim();
@@ -1691,21 +1802,27 @@
             else showToast('Error al enviar el mensaje');
         });
 
+        // Envío con Enter en el input del chat
         document.getElementById('chatInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') document.getElementById('sendMessageBtn').click();
         });
 
-        // Nav buttons
+        // ----------------------------
+        // Botones de navegación del header
+        // ----------------------------
         document.getElementById('logoBtn').addEventListener('click', () => showPage('timeline'));
         document.getElementById('homeBtn').addEventListener('click', () => showPage('timeline'));
         document.getElementById('searchBtn').addEventListener('click', () => showPage('search'));
         document.getElementById('messagesBtn').addEventListener('click', () => showPage('messages'));
         document.getElementById('profileBtn').addEventListener('click', () => showPage('profile'));
         document.getElementById('logoutBtn').addEventListener('click', () => {
+            // Resetea sesión en memoria (no borra datos persistidos)
             currentUser = null; selectedChatUser = null; showPage('auth'); showToast('Sesión cerrada');
         });
 
-        // Init
+        // ----------------------------
+        // Arranque de la app
+        // ----------------------------
         initApp();
     </script>
 </body>
