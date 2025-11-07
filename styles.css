@@ -890,3 +890,39 @@ body {
     navigation: auto;
     /* Delegar en el navegador la transición de navegación */
 }
+
+/* Avatares en imagen: ocupan todo el contenedor y mantienen cover */
+.profile-photo,
+.user-photo,
+.conversation-photo,
+.recipe-author-photo {
+    overflow: hidden;
+}
+
+.profile-photo img,
+.user-photo img,
+.conversation-photo img,
+.recipe-author-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: inherit;
+}
+
+/* Ajuste específico para .profile-photo circular */
+.profile-photo img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Ajuste en listas para mantener tamaño */
+.user-photo img,
+.conversation-photo img,
+.recipe-author-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}

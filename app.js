@@ -31,8 +31,8 @@
     function seedIfEmpty() {
         if (data.length > 0) return;
         const now = new Date().toISOString();
-        const u1 = { id: "u_demo", type: "user", username: "demo", password: "demo", fullName: "Cuenta Demo", bio: "Amante de la cocina 👨‍🍳", profilePhoto: "👤", timestamp: now };
-        const u2 = { id: "u_ana", type: "user", username: "ana", password: "ana", fullName: "Ana Chef", bio: "Pasta lover 🍝", profilePhoto: "👩‍🍳", timestamp: now };
+        const u1 = { id: "u_demo", type: "user", username: "demo", password: "demo", fullName: "Cuenta Demo", bio: "Amante de la cocina 👨‍🍳", profilePhoto: "", timestamp: now };
+        const u2 = { id: "u_ana", type: "user", username: "ana", password: "ana", fullName: "Ana Chef", bio: "Pasta lover 🍝", profilePhoto: "", timestamp: now };
         const f1 = { id: "f1", type: "friendship", requesterId: "u_demo", receiverId: "u_ana", status: "accepted", timestamp: now };
         const r1 = {
             id: "r1", type: "recipe",
@@ -296,7 +296,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
 
     const result = await window.dataSdk.create({
         id: generateId(), type: 'user', username, password, fullName,
-        bio: 'Amante de la cocina 👨‍🍳', profilePhoto: '👤', timestamp: new Date().toISOString()
+        bio: 'Amante de la cocina 👨‍🍳', profilePhoto: '', timestamp: new Date().toISOString()
     });
 
     submitBtn.disabled = false;
@@ -345,7 +345,11 @@ function renderTimeline() {
         const isLiked = likedByArray.includes(currentUser.id);
         const comments = recipe.comments ? JSON.parse(recipe.comments) : [];
 
-        // Mostrar imagen real si es data URL, si no mostrar emoji/placeholder
+        // Photo del autor: img si es data:, si no, contenedor vacío (se ve el fondo/degradado)
+        const authorPhotoHtml = (author && author.profilePhoto && String(author.profilePhoto).startsWith('data:'))
+            ? `<img src="${author.profilePhoto}" alt="${author.username}" />`
+            : '';
+
         const imageHtml = (recipe.recipeImage && String(recipe.recipeImage).startsWith('data:'))
             ? `<div class="recipe-image"><img src="${recipe.recipeImage}" alt="${(recipe.recipeTitle || 'receta')}" /></div>`
             : `<div class="recipe-image">${recipe.recipeImage || '🍕'}</div>`;
@@ -353,7 +357,7 @@ function renderTimeline() {
         return `
       <div class="recipe-card">
         <div class="recipe-header">
-          <div class="recipe-author-photo">${author?.profilePhoto || '👤'}</div>
+          <div class="recipe-author-photo">${authorPhotoHtml}</div>
           <div class="recipe-author-name">${author?.username || 'Usuario'}</div>
         </div>
         ${imageHtml}
@@ -440,6 +444,7 @@ document.getElementById('newRecipeBtn').addEventListener('click', () => {
 document.getElementById('closeRecipeModal').addEventListener('click', () => {
     document.getElementById('newRecipeModal').classList.remove('active');
 });
+// NEW RECIPE: submit mejorado con lectura/redimensionado y restauración segura del botón
 document.getElementById('newRecipeForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const title = document.getElementById('recipeTitle').value.trim();
@@ -447,41 +452,49 @@ document.getElementById('newRecipeForm').addEventListener('submit', async (e) =>
     const ingredients = document.getElementById('recipeIngredients').value.trim();
     const steps = document.getElementById('recipeSteps').value.trim();
 
-    // Nuevo: obtener fichero
     const fileInput = document.getElementById('recipeImageFile');
     const file = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
 
     const submitBtn = document.getElementById('submitRecipeBtn');
-    submitBtn.disabled = true; submitBtn.textContent = 'Publicando...';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Publicando...';
 
-    // Leer fichero (si existe) como data URL
     let imageDataUrl = null;
     try {
-        imageDataUrl = await readFileAsDataURL(file);
+        if (file) {
+            imageDataUrl = await readAndResizeImage(file, 1200, 0.8); // redimensiona para evitar errores de tamaño
+        }
     } catch (err) {
-        console.error('Error leyendo imagen:', err);
-        showToast('Error al leer la imagen. Intenta de nuevo.');
-        submitBtn.disabled = false; submitBtn.textContent = 'Publicar Receta';
+        console.error('Error procesando imagen receta:', err);
+        showToast('Error al procesar la imagen. Usa otra imagen o prueba menor tamaño.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Publicar Receta';
         return;
     }
 
-    // Si no hay imagen, usar emoji por defecto
-    const imageOrEmoji = imageDataUrl || '🍕';
+    try {
+        const result = await window.dataSdk.create({
+            id: generateId(), type: 'recipe',
+            recipeTitle: title, recipeDescription: description,
+            recipeIngredients: ingredients, recipeSteps: steps,
+            recipeImage: imageDataUrl || '🍕', authorId: currentUser.id, authorName: currentUser.username,
+            likes: 0, likedBy: '', comments: '[]', timestamp: new Date().toISOString()
+        });
 
-    const result = await window.dataSdk.create({
-        id: generateId(), type: 'recipe',
-        recipeTitle: title, recipeDescription: description,
-        recipeIngredients: ingredients, recipeSteps: steps,
-        recipeImage: imageOrEmoji, authorId: currentUser.id, authorName: currentUser.username,
-        likes: 0, likedBy: '', comments: '[]', timestamp: new Date().toISOString()
-    });
-
-    submitBtn.disabled = false; submitBtn.textContent = 'Publicar Receta';
-    if (result.isOk) {
-        showToast('¡Receta publicada!');
-        document.getElementById('newRecipeModal').classList.remove('active');
-        document.getElementById('newRecipeForm').reset();
-    } else showToast('Error al publicar la receta');
+        if (result.isOk) {
+            showToast('¡Receta publicada!');
+            document.getElementById('newRecipeModal').classList.remove('active');
+            document.getElementById('newRecipeForm').reset();
+        } else {
+            showToast('Error al publicar la receta');
+        }
+    } catch (err) {
+        console.error('create recipe error', err);
+        showToast('Error al publicar la receta');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Publicar Receta';
+    }
 });
 
 // Profile
@@ -491,7 +504,13 @@ function renderProfile() {
     const recipes = getRecipes().filter(r => r.authorId === user.id);
     const friends = getUserFriends(user.id);
 
-    document.getElementById('profilePhoto').textContent = user.profilePhoto || '👤';
+    const profilePhotoEl = document.getElementById('profilePhoto');
+    if (user.profilePhoto && String(user.profilePhoto).startsWith('data:')) {
+        profilePhotoEl.innerHTML = `<img src="${user.profilePhoto}" alt="${user.username}" />`;
+    } else {
+        profilePhotoEl.innerHTML = ''; // sin emoji por defecto
+    }
+
     document.getElementById('profileUsername').textContent = user.username;
     document.getElementById('recipesCount').textContent = recipes.length;
     document.getElementById('friendsCount').textContent = friends.length;
@@ -516,10 +535,15 @@ function renderProfile() {
             ? `<div class="recipe-image"><img src="${recipe.recipeImage}" alt="${(recipe.recipeTitle || 'receta')}" /></div>`
             : `<div class="recipe-image">${recipe.recipeImage || '🍕'}</div>`;
 
+        // Mostrar la foto del autor como <img> si es data URL, sino dejar contenedor vacío (mantiene el fondo/degradado)
+        const authorPhotoHtml = (user.profilePhoto && String(user.profilePhoto).startsWith('data:'))
+            ? `<img src="${user.profilePhoto}" alt="${user.username}" />`
+            : '';
+
         return `
       <div class="recipe-card">
         <div class="recipe-header">
-          <div class="recipe-author-photo">${user.profilePhoto || '👤'}</div>
+          <div class="recipe-author-photo">${authorPhotoHtml}</div>
           <div class="recipe-author-name">${user.username}</div>
         </div>
         ${imageHtml}
@@ -561,30 +585,62 @@ function renderProfile() {
 document.getElementById('editProfileBtn').addEventListener('click', () => {
     document.getElementById('editFullName').value = currentUser.fullName;
     document.getElementById('editBio').value = currentUser.bio || '';
-    document.getElementById('editProfileEmoji').value = currentUser.profilePhoto || '👤';
+    // limpiar input file al abrir modal
+    const photoFileInput = document.getElementById('editProfilePhotoFile');
+    if (photoFileInput) photoFileInput.value = '';
     document.getElementById('editProfileModal').classList.add('active');
 });
 document.getElementById('closeEditProfileModal').addEventListener('click', () => {
     document.getElementById('editProfileModal').classList.remove('active');
 });
+// EDIT PROFILE: handler robusto que redimensiona imagen, actualiza y limpia input para permitir reemplazos
 document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fullName = document.getElementById('editFullName').value.trim();
     const bio = document.getElementById('editBio').value.trim();
-    const emoji = document.getElementById('editProfileEmoji').value.trim() || '👤';
+    const photoFileInput = document.getElementById('editProfilePhotoFile');
+    const file = photoFileInput && photoFileInput.files && photoFileInput.files[0] ? photoFileInput.files[0] : null;
 
     const submitBtn = document.getElementById('submitEditProfileBtn');
-    submitBtn.disabled = true; submitBtn.textContent = 'Guardando...';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Guardando...';
 
-    currentUser.fullName = fullName;
-    currentUser.bio = bio;
-    currentUser.profilePhoto = emoji;
+    try {
+        let photoDataUrl = null;
+        if (file) {
+            try {
+                photoDataUrl = await readAndResizeImage(file, 800, 0.85);
+            } catch (err) {
+                console.error('Error procesando imagen perfil:', err);
+                showToast('Error al procesar la imagen. Prueba con otro archivo más pequeño.');
+                return;
+            }
+        }
 
-    const result = await window.dataSdk.update(currentUser);
-    submitBtn.disabled = false; submitBtn.textContent = 'Guardar Cambios';
+        // Actualizar fields del usuario
+        currentUser.fullName = fullName;
+        currentUser.bio = bio;
+        currentUser.profilePhoto = photoDataUrl || '';
 
-    if (result.isOk) { showToast('Perfil actualizado'); document.getElementById('editProfileModal').classList.remove('active'); renderProfile(); }
-    else showToast('Error al actualizar el perfil');
+        const result = await window.dataSdk.update(currentUser);
+        if (result.isOk) {
+            // refrescar referencia desde el almacenamiento persistido
+            currentUser = getUsers().find(u => u.id === currentUser.id) || currentUser;
+            // limpiar input file para permitir reemplazo
+            if (photoFileInput) photoFileInput.value = '';
+            showToast('Perfil actualizado');
+            document.getElementById('editProfileModal').classList.remove('active');
+            renderProfile();
+        } else {
+            showToast('Error al actualizar el perfil');
+        }
+    } catch (err) {
+        console.error('update profile error', err);
+        showToast('Error al actualizar el perfil');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Guardar Cambios';
+    }
 });
 
 // Search
@@ -617,9 +673,11 @@ function renderSearchResults() {
         if (isFriend) { buttonText = '✓ Amigos'; buttonClass = 'btn-add-friend friends'; }
         else if (status === 'pending') { buttonText = 'Pendiente'; buttonClass = 'btn-add-friend pending'; }
 
+        const photoHtml = user.profilePhoto && String(user.profilePhoto).startsWith('data:') ? `<img src="${user.profilePhoto}" alt="${user.fullName}" />` : '';
+
         return `
       <div class="user-item">
-        <div class="user-photo">${user.profilePhoto || '👤'}</div>
+        <div class="user-photo">${photoHtml}</div>
         <div class="user-info">
           <div class="user-name">${user.fullName}</div>
           <div class="user-username">@${user.username}</div>
@@ -630,7 +688,6 @@ function renderSearchResults() {
       </div>`;
     }).join('');
 }
-document.getElementById('searchInput').addEventListener('input', renderSearchResults);
 
 // Envía/crea una relación de amistad aceptada entre el usuario actual y el destino.
 async function sendFriendRequest(receiverId) {
@@ -672,9 +729,12 @@ function renderConversations() {
         );
         const lastMessage = messages[messages.length - 1];
         const preview = lastMessage ? lastMessage.messageText.substring(0, 30) + '...' : 'Envía un mensaje';
+
+        const photoHtml = friend.profilePhoto && String(friend.profilePhoto).startsWith('data:') ? `<img src="${friend.profilePhoto}" alt="${friend.fullName}" />` : '';
+
         return `
       <div class="conversation-item ${selectedChatUser?.id === friend.id ? 'active' : ''}" onclick="selectChat('${friend.id}')">
-        <div class="conversation-photo">${friend.profilePhoto || '👤'}</div>
+        <div class="conversation-photo">${photoHtml}</div>
         <div class="conversation-info">
           <div class="conversation-name">${friend.fullName}</div>
           <div class="conversation-preview">${preview}</div>
@@ -698,7 +758,7 @@ function selectChat(userId) {
 
 // RENDER CHAT: muestra el historial con el usuario seleccionado y hace autoscroll.
 function renderChat(user) {
-    document.getElementById('chatUserPhoto').textContent = user.profilePhoto || '👤';
+    document.getElementById('chatUserPhoto').innerHTML = (user.profilePhoto && String(user.profilePhoto).startsWith('data:')) ? `<img src="${user.profilePhoto}" alt="${user.fullName}" />` : '';
     document.getElementById('chatUserName').textContent = user.fullName;
 
     const messages = getMessages().filter(m =>
@@ -770,5 +830,46 @@ function readFileAsDataURL(file) {
         reader.onload = () => resolve(reader.result);
         reader.onerror = () => reject(new Error('file_read_error'));
         reader.readAsDataURL(file);
+    });
+}
+// Util: lee y redimensiona imagen (File) a un tamaño máximo dado, retornando un data URL.
+function readAndResizeImage(file, maxDimension = 1200, quality = 0.85) {
+    return new Promise((resolve, reject) => {
+        if (!file) return resolve(null);
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+            try {
+                let { width, height } = img;
+                const ratio = width / height;
+                if (width > maxDimension || height > maxDimension) {
+                    if (ratio > 1) {
+                        width = maxDimension;
+                        height = Math.round(maxDimension / ratio);
+                    } else {
+                        height = maxDimension;
+                        width = Math.round(maxDimension * ratio);
+                    }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                // intentar JPEG para compresión; si PNG, forzar jpeg
+                const mime = 'image/jpeg';
+                const dataUrl = canvas.toDataURL(mime, quality);
+                URL.revokeObjectURL(url);
+                resolve(dataUrl);
+            } catch (err) {
+                URL.revokeObjectURL(url);
+                reject(err);
+            }
+        };
+        img.onerror = (err) => {
+            URL.revokeObjectURL(url);
+            reject(new Error('image_load_error'));
+        };
+        img.src = url;
     });
 }
