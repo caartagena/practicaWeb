@@ -1,21 +1,28 @@
 /* ===== ESTILOS BASE / LAYOUT ===== */
 body {
     box-sizing: border-box;
+    /* Incluye padding/border en el cálculo del ancho/alto */
     margin: 0;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    /* Stack de sistema */
     background: #fafafa;
+    /* Gris muy claro tipo Instagram */
     height: 100%;
     overflow-x: hidden;
+    /* Evita scroll horizontal accidental */
 }
 
 * {
     box-sizing: border-box;
+    /* Reseteo universal coherente con body */
 }
 
 .container {
     max-width: 935px;
+    /* Ancho típico de feed centrado */
     margin: 0 auto;
+    /* Centrado horizontal */
     padding: 20px;
     min-height: 100%;
 }
@@ -24,19 +31,24 @@ body {
 .header {
     background: white;
     border-bottom: 1px solid #dbdbdb;
+    /* Separador sutil */
     padding: 12px 0;
     position: sticky;
+    /* Se queda arriba al hacer scroll */
     top: 0;
     z-index: 100;
+    /* Por encima del contenido */
     margin-bottom: 30px;
 }
 
 .header-content {
     max-width: 935px;
+    /* Alineado con .container */
     margin: 0 auto;
     padding: 0 20px;
     display: flex;
     justify-content: space-between;
+    /* Logo a la izq, botones a la dcha */
     align-items: center;
 }
 
@@ -44,6 +56,7 @@ body {
     font-size: 28px;
     font-weight: 600;
     color: #262626;
+    /* Texto principal oscuro */
     cursor: pointer;
 }
 
@@ -56,19 +69,22 @@ body {
     background: none;
     border: none;
     font-size: 24px;
+    /* Ideal para iconos */
     cursor: pointer;
     padding: 8px;
     border-radius: 8px;
     transition: background 0.2s;
+    /* Feedback hover suave */
 }
 
 .nav-btn:hover {
     background: #f0f0f0;
 }
 
-/* Auth */
+/* Auth (pantallas de login/registro) */
 .auth-container {
     max-width: 350px;
+    /* Tarjeta compacta */
     margin: 60px auto;
     background: white;
     border: 1px solid #dbdbdb;
@@ -87,6 +103,7 @@ body {
 .auth-tagline {
     text-align: center;
     color: #8e8e8e;
+    /* Texto secundario */
     margin-bottom: 30px;
     font-size: 16px;
 }
@@ -110,11 +127,13 @@ body {
     border-radius: 6px;
     font-size: 14px;
     background: #fafafa;
+    /* Estilo “inactivo” */
 }
 
 .form-input:focus {
     outline: none;
     border-color: #0095f6;
+    /* Azul de acción */
     background: white;
 }
 
@@ -138,6 +157,7 @@ body {
 
 .btn-primary:disabled {
     background: #b2dffc;
+    /* Indica estado deshabilitado */
     cursor: not-allowed;
 }
 
@@ -158,7 +178,7 @@ body {
     margin-left: 5px;
 }
 
-/* Profile */
+/* Profile (cabecera de perfil) */
 .profile-header {
     display: flex;
     gap: 80px;
@@ -173,15 +193,20 @@ body {
     flex-shrink: 0;
 }
 
+/* Evita que la foto se encoja */
+
 .profile-photo {
     width: 150px;
     height: 150px;
     border-radius: 50%;
+    /* Avatar circular */
     background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    /* Degradado tipo historia */
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 60px;
+    /* Para usar emoji/monograma */
     color: white;
 }
 
@@ -232,7 +257,7 @@ body {
     background: #fafafa;
 }
 
-/* Timeline */
+/* Timeline (feed de recetas) */
 .timeline-header {
     text-align: center;
     margin-bottom: 30px;
@@ -266,6 +291,7 @@ body {
     border-radius: 12px;
     margin-bottom: 24px;
     overflow: hidden;
+    /* Recorta bordes del contenido (imagen) */
 }
 
 .recipe-header {
@@ -297,7 +323,9 @@ body {
 .recipe-image {
     width: 100%;
     aspect-ratio: 1;
+    /* Imagen cuadrada responsiva */
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Placeholder si no hay imagen real */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -315,9 +343,11 @@ body {
     background: none;
     border: none;
     font-size: 24px;
+    /* Iconos */
     cursor: pointer;
     padding: 4px;
     transition: transform 0.1s;
+    /* Micro-interacción al hover */
 }
 
 .action-btn:hover {
@@ -327,6 +357,8 @@ body {
 .action-btn.liked {
     color: #ed4956;
 }
+
+/* Estado “like” (rojo) */
 
 .recipe-likes {
     padding: 0 16px 8px;
@@ -371,10 +403,11 @@ body {
     color: #262626;
     line-height: 1.6;
     white-space: pre-line;
+    /* Respeta saltos de línea del texto */
     font-size: 14px;
 }
 
-/* Comments */
+/* Comments (comentarios en las recetas) */
 .recipe-comments {
     padding: 0 16px 16px;
     border-top: 1px solid #efefef;
@@ -404,6 +437,7 @@ body {
     padding: 8px 12px;
     border: 1px solid #dbdbdb;
     border-radius: 20px;
+    /* Pastilla */
     font-size: 14px;
 }
 
@@ -427,7 +461,7 @@ body {
     background: #0081d6;
 }
 
-/* Search */
+/* Search (búsqueda de usuarios) */
 .search-container {
     background: white;
     border-radius: 12px;
@@ -491,6 +525,7 @@ body {
     font-size: 18px;
     color: white;
     flex-shrink: 0;
+    /* No se deforma en filas estrechas */
 }
 
 .user-info {
@@ -525,6 +560,7 @@ body {
 
 .btn-add-friend.pending {
     background: #dbdbdb;
+    /* Solicitud pendiente */
     color: #262626;
 }
 
@@ -532,13 +568,15 @@ body {
     background: white;
     color: #262626;
     border: 1px solid #dbdbdb;
+    /* Estado “ya amigos” */
 }
 
-/* Messages */
+/* Messages (mensajería tipo chat) */
 .messages-container {
     display: flex;
     gap: 24px;
     height: 600px;
+    /* Alto fijo de la vista de mensajes */
 }
 
 .conversations-list {
@@ -547,6 +585,7 @@ body {
     border: 1px solid #dbdbdb;
     border-radius: 12px;
     overflow: hidden;
+    /* Recorta separadores */
 }
 
 .conversations-header {
@@ -575,6 +614,8 @@ body {
     background: #efefef;
 }
 
+/* Selección activa */
+
 .conversation-photo {
     width: 44px;
     height: 44px;
@@ -593,6 +634,8 @@ body {
     min-width: 0;
 }
 
+/* Permite elipsis */
+
 .conversation-name {
     font-weight: 600;
     color: #262626;
@@ -606,6 +649,7 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    /* “…” en previews largas */
 }
 
 .chat-container {
@@ -648,6 +692,7 @@ body {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
+    /* Scroll del historial */
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -655,6 +700,7 @@ body {
 
 .message {
     max-width: 70%;
+    /* Burbuja no ocupa toda la fila */
     padding: 12px 16px;
     border-radius: 20px;
     font-size: 14px;
@@ -663,12 +709,14 @@ body {
 
 .message.sent {
     align-self: flex-end;
+    /* Burbuja a la derecha */
     background: #0095f6;
     color: white;
 }
 
 .message.received {
     align-self: flex-start;
+    /* Burbuja a la izquierda */
     background: #efefef;
     color: #262626;
 }
@@ -713,18 +761,21 @@ body {
     cursor: not-allowed;
 }
 
-/* Modal & misc */
+/* Modal & misc (modales, estados vacíos, toasts…) */
 .modal {
     display: none;
+    /* Oculto por defecto */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.65);
+    /* Oscurece fondo */
     z-index: 1000;
     align-items: center;
     justify-content: center;
+    /* Centra contenido (cuando activo) */
 }
 
 .modal.active {
@@ -739,6 +790,7 @@ body {
     width: 90%;
     max-height: 80%;
     overflow-y: auto;
+    /* Scroll interno si hay mucho contenido */
 }
 
 .modal-header {
@@ -802,11 +854,14 @@ body {
     display: none !important;
 }
 
+/* Utilidad para ocultar forzado */
+
 .toast {
     position: fixed;
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
+    /* Centra horizontalmente */
     background: #262626;
     color: white;
     padding: 12px 24px;
@@ -814,6 +869,7 @@ body {
     font-size: 14px;
     z-index: 2000;
     opacity: 0;
+    /* Aparece con clase .show */
     transition: opacity 0.3s;
 }
 
@@ -821,7 +877,8 @@ body {
     opacity: 1;
 }
 
-/* View Transitions API */
+/* View Transitions API (suaviza transiciones entre vistas si el navegador lo soporta) */
 @view-transition {
     navigation: auto;
+    /* Delegar en el navegador la transición de navegación */
 }

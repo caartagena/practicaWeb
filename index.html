@@ -6,25 +6,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RecetaGram - Red Social de Recetas</title>
 
-    <!-- Tailwind opcional (como en tu original) -->
+    <!-- 
+      Tailwind opcional (como en tu original)
+      - Carga Tailwind desde CDN para poder usar utilidades de maquetación rápidas.
+      - Es opcional porque la UI ya está cubierta con tu CSS; si lo quitas, la página seguirá funcionando gracias a styles.css.
+      - Útil para prototipar o añadir retoques sin tocar el CSS principal.
+    -->
     <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
 
-    <!-- Tu CSS externo -->
+    <!-- 
+      Tu hoja de estilos principal
+      - Contiene todos los estilos de la app (layout, tipografías, componentes).
+      - Mantén esta referencia antes de cargar tu JS para que el DOM ya tenga estilos al inicializarse.
+    -->
     <link rel="stylesheet" href="styles.css" />
 
-    <!-- Tu JS externo (SDKs mock + lógica de la app) -->
+    <!-- 
+      Tu JavaScript principal
+      - app.js contiene la lógica de la app (navegación entre páginas, manejo de formularios,
+        render de recetas/usuarios, eventos de chat, etc.).
+      - 'defer' asegura que el script se ejecute cuando el HTML esté parseado, evitando bloqueos de render.
+    -->
     <script src="app.js" defer></script>
 </head>
 
 <body>
-    <!-- Toast Notification -->
+    <!-- 
+      Aviso flotante (toast)
+      - Elemento reutilizable para mostrar mensajes breves al usuario (éxitos, errores, info).
+      - Se controla añadiendo/quitarndo clases (p. ej., .show) desde app.js.
+    -->
     <div id="toast" class="toast"></div>
 
-    <!-- Header (hidden on auth page) -->
+    <!-- 
+      Cabecera fija (oculta en pantallas de autenticación)
+      - Barra superior con navegación principal de la app.
+      - Por defecto tiene la clase .hidden para no mostrarse en la vista de login/registro.
+      - app.js la mostrará cuando el usuario haya iniciado sesión.
+    -->
     <div id="header" class="header hidden">
         <div class="header-content">
             <div class="logo" id="logoBtn">RecetaGram</div>
             <div class="nav-buttons">
+                <!-- Botones de navegación principal (controlados por JS con eventos click) -->
                 <button class="nav-btn" id="homeBtn" title="Inicio">🏠</button>
                 <button class="nav-btn" id="searchBtn" title="Buscar">🔍</button>
                 <button class="nav-btn" id="messagesBtn" title="Mensajes">💬</button>
@@ -35,13 +59,22 @@
     </div>
 
     <div class="container">
-        <!-- Auth Page -->
+        <!-- 
+          Página de Autenticación (login/registro)
+          - Vista inicial para usuarios no autenticados.
+          - Incluye dos formularios: uno de inicio de sesión y otro de registro.
+          - app.js alterna la visibilidad entre ambos con el botón "Regístrate / Inicia sesión".
+        -->
         <div id="authPage">
             <div class="auth-container">
                 <div class="auth-logo" id="authLogo">RecetaGram</div>
                 <div class="auth-tagline" id="authTagline">Comparte tus recetas favoritas</div>
 
-                <!-- Login Form -->
+                <!-- 
+                  Formulario de Inicio de Sesión
+                  - Requiere nombre de usuario y contraseña.
+                  - app.js captura el submit, valida, y si es correcto, carga la app con el usuario activo.
+                -->
                 <form id="loginForm">
                     <div class="form-group">
                         <label for="loginUsername">Nombre de usuario</label>
@@ -54,7 +87,11 @@
                     <button type="submit" class="btn-primary" id="loginBtn">Iniciar Sesión</button>
                 </form>
 
-                <!-- Register Form -->
+                <!-- 
+                  Formulario de Registro
+                  - Oculto inicialmente; se muestra al pulsar "Regístrate".
+                  - Crea un nuevo usuario en el almacenamiento (mock) y hace login automático.
+                -->
                 <form id="registerForm" class="hidden">
                     <div class="form-group">
                         <label for="registerFullName">Nombre completo</label>
@@ -71,6 +108,11 @@
                     <button type="submit" class="btn-primary" id="registerBtn">Registrarse</button>
                 </form>
 
+                <!-- 
+                  Conmutador entre Login y Registro
+                  - Cambia el texto y alterna qué formulario se ve.
+                  - Útil para no duplicar páginas y mejorar la UX.
+                -->
                 <div class="auth-switch">
                     <span id="authSwitchText">¿No tienes cuenta?</span>
                     <button type="button" id="authSwitchBtn">Regístrate</button>
@@ -78,7 +120,12 @@
             </div>
         </div>
 
-        <!-- Timeline Page -->
+        <!-- 
+          Página de Timeline (feed principal)
+          - Muestra las recetas publicadas por el usuario y sus amigos/seguidos.
+          - Botón “+ Nueva Receta” abre un modal para crear una receta.
+          - #recipesList se rellena dinámicamente desde app.js.
+        -->
         <div id="timelinePage" class="hidden">
             <div class="timeline-header">
                 <h1 class="timeline-title" id="timelineTitle">Recetas de tus Amigos</h1>
@@ -87,7 +134,12 @@
             <div id="recipesList"></div>
         </div>
 
-        <!-- Profile Page -->
+        <!-- 
+          Página de Perfil
+          - Muestra información del usuario activo (foto/emoji, bio, recuentos) y su grid/lista de recetas.
+          - Botón “Editar Perfil” abre su modal correspondiente.
+          - #userRecipesList se completa con las recetas del usuario.
+        -->
         <div id="profilePage" class="hidden">
             <div class="profile-header">
                 <div class="profile-photo-container">
@@ -106,7 +158,11 @@
             <div id="userRecipesList"></div>
         </div>
 
-        <!-- Search Page -->
+        <!-- 
+          Página de Búsqueda
+          - Permite buscar usuarios por nombre/username.
+          - #usersList se rellena con resultados; cada item puede tener acciones (p. ej., añadir amigo).
+        -->
         <div id="searchPage" class="hidden">
             <div class="search-container">
                 <div class="search-header">
@@ -117,7 +173,13 @@
             </div>
         </div>
 
-        <!-- Messages Page -->
+        <!-- 
+          Página de Mensajes (chat)
+          - Diseño en dos columnas:
+            * Izquierda: lista de conversaciones (#conversationsList).
+            * Derecha: historial del chat y campo de entrada.
+          - #chatHeader y #chatInputContainer se muestran cuando hay una conversación activa.
+        -->
         <div id="messagesPage" class="hidden">
             <div class="messages-container">
                 <div class="conversations-list">
@@ -139,7 +201,12 @@
         </div>
     </div>
 
-    <!-- New Recipe Modal -->
+    <!-- 
+      Modal: Nueva Receta
+      - Diálogo para crear una nueva publicación.
+      - Contiene campos para título, descripción, ingredientes, pasos y un emoji representativo.
+      - Al enviar, app.js valida y añade la receta al feed y/o al perfil.
+    -->
     <div id="newRecipeModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -172,7 +239,12 @@
         </div>
     </div>
 
-    <!-- Edit Profile Modal -->
+    <!-- 
+      Modal: Editar Perfil
+      - Diálogo para actualizar datos básicos del usuario.
+      - Permite cambiar nombre completo, biografía y emoji/imagen de perfil.
+      - Tras guardar, app.js refresca la cabecera del perfil y otros lugares donde se muestre el usuario.
+    -->
     <div id="editProfileModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
