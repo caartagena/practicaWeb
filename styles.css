@@ -891,6 +891,24 @@ body {
     /* Delegar en el navegador la transición de navegación */
 }
 
+/* Estilo para botón eliminar dentro de acciones (perfil) */
+.btn-delete {
+    padding: 6px 8px;
+    border-radius: 10px;
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #9b1c1c;
+    transition: transform 120ms, background 120ms, opacity 120ms;
+}
+
+.btn-delete:hover {
+    transform: translateY(-2px);
+    background: rgba(155, 28, 28, 0.06);
+    opacity: 0.95;
+}
+
 /* Avatares en imagen: ocupan todo el contenedor y mantienen cover */
 .profile-photo,
 .user-photo,
