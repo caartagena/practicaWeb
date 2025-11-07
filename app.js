@@ -218,6 +218,9 @@ async function initApp() {
             largeText.forEach(el => { el.style.fontSize = `${baseSize * 2}px`; });
         }
     });
+
+    // Cargar tema guardado tras inicializar UI
+    loadTheme();
 }
 
 // Utils
@@ -248,6 +251,24 @@ function getFriendshipStatus(a, b) {
     return f ? f.status : null;
 }
 
+// ---- Theme: modo claro/oscuro simple ----
+function applyTheme(theme) {
+    if (theme === 'dark') document.body.classList.add('dark');
+    else document.body.classList.remove('dark');
+
+    const btn = document.getElementById('themeToggleBtn');
+    if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('recetagram_theme', theme);
+}
+function loadTheme() {
+    const saved = localStorage.getItem('recetagram_theme') || 'light';
+    applyTheme(saved);
+}
+function toggleTheme() {
+    const isDark = document.body.classList.contains('dark');
+    applyTheme(isDark ? 'light' : 'dark');
+}
+
 // Navigation
 // Navigation: muestra la página indicada y renderiza su contenido si aplica.
 function showPage(pageName) {
@@ -265,9 +286,9 @@ function showPage(pageName) {
         document.getElementById('header').classList.remove('hidden');
         document.getElementById(`${pageName}Page`).classList.remove('hidden');
         if (pageName === 'timeline') renderTimeline();
-        else if (pageName === 'profile') renderProfile();
-        else if (pageName === 'search') renderSearchResults();
-        else if (pageName === 'messages') renderConversations();
+        else if (currentPage === 'profile') renderProfile();
+        else if (currentPage === 'search') renderSearchResults();
+        else if (currentPage === 'messages') renderConversations();
     }
 }
 
@@ -728,6 +749,8 @@ document.getElementById('profileBtn').addEventListener('click', () => showPage('
 document.getElementById('logoutBtn').addEventListener('click', () => {
     currentUser = null; selectedChatUser = null; showPage('auth'); showToast('Sesión cerrada');
 });
+// Botón alternar tema
+document.getElementById('themeToggleBtn').addEventListener('click', () => toggleTheme());
 
 // Init
 // Punto de entrada: inicia la app una vez cargado el script.

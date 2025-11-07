@@ -877,8 +877,83 @@ body {
     opacity: 1;
 }
 
-/* View Transitions API (suaviza transiciones entre vistas si el navegador lo soporta) */
-@view-transition {
-    navigation: auto;
-    /* Delegar en el navegador la transición de navegación */
+/* Transiciones suaves para cambios de tema */
+body,
+.header,
+.auth-container,
+.recipe-card,
+.search-container,
+.conversations-list,
+.chat-container,
+.modal-content,
+.profile-header {
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+/* Tema oscuro */
+body.dark {
+    background: #0b0b0b;
+    color: #e6e6e6;
+}
+
+body.dark .header,
+body.dark .auth-container,
+body.dark .profile-header,
+body.dark .recipe-card,
+body.dark .search-container,
+body.dark .conversations-list,
+body.dark .chat-container,
+body.dark .modal-content,
+body.dark .user-item {
+    background: #121212;
+    border-color: #2a2a2a;
+    color: #e6e6e6;
+}
+
+body.dark .logo,
+body.dark .auth-logo,
+body.dark .profile-username,
+body.dark .timeline-title,
+body.dark .search-title,
+body.dark .modal-title,
+body.dark .recipe-title,
+body.dark .user-name,
+body.dark .conversation-name,
+body.dark .chat-user-name,
+body.dark .stat,
+body.dark .profile-bio,
+body.dark .recipe-description,
+body.dark .comment,
+body.dark label {
+    color: #e6e6e6;
+}
+
+body.dark .form-input,
+body.dark .search-input,
+body.dark .chat-input,
+body.dark .comment-input {
+    background: #0f0f0f;
+    border-color: #2a2a2a;
+    color: #e6e6e6;
+}
+
+body.dark .btn-primary,
+body.dark .btn-new-recipe,
+body.dark .btn-add-friend,
+body.dark .btn-send,
+body.dark .btn-comment {
+    background: #1e90ff;
+    color: white;
+}
+
+body.dark .btn-add-friend.friends,
+body.dark .btn-edit-profile {
+    background: #181818;
+    color: #e6e6e6;
+    border-color: #2a2a2a;
+}
+
+body.dark .toast {
+    background: #e6e6e6;
+    color: #121212;
 }
