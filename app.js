@@ -1,5 +1,5 @@
 /*
-  RecetaGram (SPA demo) — Comentarios extendidos
+  YourRecipe (SPA demo) — Comentarios extendidos
   ------------------------------------------------
   Este archivo contiene:
   - Un SDK de datos (dataSdk) que simula un backend usando localStorage.
@@ -11,7 +11,7 @@
 
 // ===== _sdk/data_sdk.js (mock localStorage) =====
 (function () {
-  const STORAGE_KEY = "recetagram_data";
+  const STORAGE_KEY = "yourrecipe_data";
   let data = [];
   let subscribers = [];
   // 'data' mantiene en memoria el estado persistido en localStorage.
@@ -95,7 +95,7 @@
 
 // ===== _sdk/element_sdk.js (mock config en localStorage) =====
 (function () {
-  const CFG_KEY = "recetagram_config";
+  const CFG_KEY = "yourrecipe_config";
   let config = {};
   let onConfigChangeCb = null;
 
@@ -143,9 +143,9 @@ let selectedChatUser = null;
 // Default config
 // Default config: textos, colores y tipografías por defecto usados por elementSdk.
 const defaultConfig = {
-  app_title: 'RecetaGram',
+  app_title: 'YourRecipe',
   app_tagline: 'Comparte tus recetas favoritas',
-  welcome_message: 'Bienvenido a RecetaGram',
+  welcome_message: 'Bienvenido a YourRecipe',
   login_button_text: 'Iniciar Sesión',
   register_button_text: 'Registrarse',
   timeline_title: 'Recetas de tus Amigos',
