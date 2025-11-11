@@ -2,8 +2,8 @@
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YourRecipe - Red Social de Recetas</title>
 
     <!-- 
@@ -19,7 +19,7 @@
       - Contiene todos los estilos de la app (layout, tipografías, componentes).
       - Mantén esta referencia antes de cargar tu JS para que el DOM ya tenga estilos al inicializarse.
     -->
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css">
 
     <!-- 
       Tu JavaScript principal
@@ -78,11 +78,11 @@
                 <form id="loginForm">
                     <div class="form-group">
                         <label for="loginUsername">Nombre de usuario</label>
-                        <input type="text" id="loginUsername" class="form-input" required />
+                        <input type="text" id="loginUsername" class="form-input" required>
                     </div>
                     <div class="form-group">
                         <label for="loginPassword">Contraseña</label>
-                        <input type="password" id="loginPassword" class="form-input" required />
+                        <input type="password" id="loginPassword" class="form-input" required>
                     </div>
                     <button type="submit" class="btn-primary" id="loginBtn">Iniciar Sesión</button>
                 </form>
@@ -95,15 +95,15 @@
                 <form id="registerForm" class="hidden">
                     <div class="form-group">
                         <label for="registerFullName">Nombre completo</label>
-                        <input type="text" id="registerFullName" class="form-input" required />
+                        <input type="text" id="registerFullName" class="form-input" required>
                     </div>
                     <div class="form-group">
                         <label for="registerUsername">Nombre de usuario</label>
-                        <input type="text" id="registerUsername" class="form-input" required />
+                        <input type="text" id="registerUsername" class="form-input" required>
                     </div>
                     <div class="form-group">
                         <label for="registerPassword">Contraseña</label>
-                        <input type="password" id="registerPassword" class="form-input" required />
+                        <input type="password" id="registerPassword" class="form-input" required>
                     </div>
                     <button type="submit" class="btn-primary" id="registerBtn">Registrarse</button>
                 </form>
@@ -167,7 +167,7 @@
             <div class="search-container">
                 <div class="search-header">
                     <h1 class="search-title">Buscar Usuarios</h1>
-                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar usuarios..." />
+                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar usuarios..." >
                 </div>
                 <div id="usersList" class="user-list"></div>
             </div>
@@ -193,7 +193,7 @@
                     </div>
                     <div id="chatMessages" class="chat-messages"></div>
                     <div id="chatInputContainer" class="chat-input-container hidden">
-                        <input type="text" id="chatInput" class="chat-input" placeholder="Escribe un mensaje..." />
+                        <input type="text" id="chatInput" class="chat-input" placeholder="Escribe un mensaje..." >
                         <button id="sendMessageBtn" class="btn-send">Enviar</button>
                     </div>
                 </div>
@@ -216,11 +216,11 @@
             <form id="newRecipeForm">
                 <div class="form-group">
                     <label for="recipeTitle">Título de la receta</label>
-                    <input type="text" id="recipeTitle" class="form-input" required />
+                    <input type="text" id="recipeTitle" class="form-input" required >
                 </div>
                 <div class="form-group">
                     <label for="recipeDescription">Descripción</label>
-                    <input type="text" id="recipeDescription" class="form-input" required />
+                    <input type="text" id="recipeDescription" class="form-input" required >
                 </div>
                 <div class="form-group">
                     <label for="recipeIngredients">Ingredientes (uno por línea)</label>
@@ -232,7 +232,7 @@
                 </div>
                 <div class="form-group">
                     <label for="recipeImageFile">Foto de la receta</label>
-                    <input type="file" id="recipeImageFile" class="form-input" accept="image/*" />
+                    <input type="file" id="recipeImageFile" class="form-input" accept="image/*" >
                     <small style="display:block;margin-top:6px;color:#8e8e8e;">Puedes subir una foto desde tu
                         dispositivo. Si no subes nada, se usará un emoji por defecto.</small>
                 </div>
@@ -256,7 +256,7 @@
             <form id="editProfileForm">
                 <div class="form-group">
                     <label for="editFullName">Nombre completo</label>
-                    <input type="text" id="editFullName" class="form-input" required />
+                    <input type="text" id="editFullName" class="form-input" required >
                 </div>
                 <div class="form-group">
                     <label for="editBio">Biografía</label>
@@ -264,7 +264,7 @@
                 </div>
                 <div class="form-group">
                     <label for="editProfilePhotoFile">Foto de perfil</label>
-                    <input type="file" id="editProfilePhotoFile" class="form-input" accept="image/*" />
+                    <input type="file" id="editProfilePhotoFile" class="form-input" accept="image/*" >
                     <small style="display:block;margin-top:6px;color:#8e8e8e;">Sube una imagen desde tu dispositivo
                         (opcional). Si no subes nada, se usará el avatar vacío.</small>
                 </div>
