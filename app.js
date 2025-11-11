@@ -824,16 +824,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 // Punto de entrada: inicia la app una vez cargado el script.
 initApp();
 
-// Util: lee File como data URL
-function readFileAsDataURL(file) {
-  return new Promise((resolve, reject) => {
-    if (!file) return resolve(null);
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error('file_read_error'));
-    reader.readAsDataURL(file);
-  });
-}
+
 // Util: lee y redimensiona imagen (File) a un tamaño máximo dado, retornando un data URL.
 function readAndResizeImage(file, maxDimension = 1200, quality = 0.85) {
   return new Promise((resolve, reject) => {
