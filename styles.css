@@ -326,7 +326,7 @@ body {
 .recipe-image {
     width: 100%;
     max-width: 600px; /* Ancho máximo para no estirarse demasiado */
-    height: 500px; /* Altura fija para formato vertical */
+    height: auto; /* Altura fija para formato vertical */
     margin: 0 auto; /* Centrar la imagen con espacios laterales */
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
@@ -341,7 +341,7 @@ body {
 /* Imagen real - mantener proporción y centrar */
 .recipe-image img {
     width: 100%;
-    height: 100%;
+    height: auto;
     object-fit: contain; /* Cambiado de 'cover' a 'contain' para mostrar imagen completa */
     display: block;
     background: white; /* Fondo blanco para los espacios */
@@ -457,7 +457,6 @@ body {
 /* Estado “like” (rojo) */
 
 .recipe-likes {
-
     padding: 0 0 6px 0;
     font-weight: 600;
     color: #262626;
