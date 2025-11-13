@@ -320,25 +320,113 @@ body {
     font-size: 14px;
 }
 
+/* ===== IMÁGENES CON FORMATO VERTICAL TIPO INSTAGRAM ===== */
+
+/* Contenedor principal de la imagen - formato vertical */
 .recipe-image {
     width: 100%;
-    aspect-ratio: 1;
-    /* Si hay imagen real se mostrará dentro; si no, queda el placeholder o emoji */
+    max-width: 600px; /* Ancho máximo para no estirarse demasiado */
+    height: 500px; /* Altura fija para formato vertical */
+    margin: 0 auto; /* Centrar la imagen con espacios laterales */
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 80px;
+    font-size: 60px;
     color: white;
     overflow: hidden;
+    position: relative;
 }
 
-/* Imagen real dentro de .recipe-image */
+/* Imagen real - mantener proporción y centrar */
 .recipe-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain; /* Cambiado de 'cover' a 'contain' para mostrar imagen completa */
     display: block;
+    background: white; /* Fondo blanco para los espacios */
+}
+
+/* Para pantallas de escritorio grandes */
+@media (min-width: 1200px) {
+    .recipe-image {
+        height: 550px;
+        max-width: 500px;
+        font-size: 70px;
+    }
+}
+
+/* Para tablets y escritorios pequeños */
+@media (max-width: 1199px) and (min-width: 769px) {
+    .recipe-image {
+        height: 500px;
+        max-width: 450px;
+        font-size: 60px;
+    }
+}
+
+/* Para tablets en portrait */
+@media (max-width: 768px) and (min-width: 481px) {
+    .recipe-image {
+        height: 450px;
+        max-width: 400px;
+        font-size: 55px;
+    }
+}
+
+/* Para móviles - aquí sí ocupa todo el ancho */
+@media (max-width: 480px) {
+    .recipe-image {
+        height: 400px;
+        max-width: 100%; /* En móviles ocupa todo el ancho */
+        font-size: 50px;
+        margin: 0; /* Sin márgenes automáticos en móviles */
+    }
+    
+    .recipe-image img {
+        object-fit: cover; /* En móviles puede usar cover para mejor uso del espacio */
+    }
+}
+
+/* Para móviles muy pequeños */
+@media (max-width: 360px) {
+    .recipe-image {
+        height: 350px;
+        font-size: 45px;
+    }
+}
+
+/* Ajustar el contenedor de la tarjeta para el nuevo formato */
+.recipe-card {
+    background: white;
+    border: 1px solid #dbdbdb;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Asegurar que el contenido de la tarjeta esté centrado */
+.recipe-header,
+.recipe-actions,
+.recipe-content,
+.recipe-comments {
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Ajustar el padding del contenido para pantallas grandes */
+@media (min-width: 769px) {
+    .recipe-header,
+    .recipe-actions,
+    .recipe-content,
+    .recipe-comments {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    
 }
 
 .recipe-actions {
@@ -369,12 +457,38 @@ body {
 /* Estado “like” (rojo) */
 
 .recipe-likes {
-    padding: 0 16px 8px;
+
+    padding: 0 0 6px 0;
     font-weight: 600;
     color: #262626;
-    font-size: 14px;
+    font-size: 13px;
+    text-align: left;
+    width: 100%;
+    max-width: 580px; /* Reducido ligeramente de 600px */
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
+/* Para pantallas de escritorio grandes */
+@media (min-width: 1200px) {
+    .recipe-likes {
+        max-width: 480px; /* Reducido de 500px */
+    }
+}
+
+/* Para tablets y escritorios pequeños */
+@media (max-width: 1199px) and (min-width: 769px) {
+    .recipe-likes {
+        max-width: 430px; /* Reducido de 450px */
+    }
+}
+
+/* Para tablets en portrait */
+@media (max-width: 768px) and (min-width: 481px) {
+    .recipe-likes {
+        max-width: 380px; /* Reducido de 400px */
+    }
+}
 .recipe-content {
     padding: 0 16px 16px;
 }
