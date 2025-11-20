@@ -6,23 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YourRecipe - Red Social de Recetas</title>
 
-    <!-- 
-      Tailwind opcional (como en tu original)
-      - Carga Tailwind desde CDN para poder usar utilidades de maquetación rápidas.
-      - Es opcional porque la UI ya está cubierta con tu CSS; si lo quitas, la página seguirá funcionando gracias a styles.css.
-      - Útil para prototipar o añadir retoques sin tocar el CSS principal.
-    -->
+ 
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- 
-      Tu hoja de estilos principal
+      Hoja de estilos principal
       - Contiene todos los estilos de la app (layout, tipografías, componentes).
       - Mantén esta referencia antes de cargar tu JS para que el DOM ya tenga estilos al inicializarse.
     -->
     <link rel="stylesheet" href="styles.css">
 
     <!-- 
-      Tu JavaScript principal
+    JavaScript principal
       - app.js contiene la lógica de la app (navegación entre páginas, manejo de formularios,
         render de recetas/usuarios, eventos de chat, etc.).
       - 'defer' asegura que el script se ejecute cuando el HTML esté parseado, evitando bloqueos de render.
